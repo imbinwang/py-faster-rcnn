@@ -9,8 +9,20 @@
 
 __sets = {}
 
+import datasets.linemod
 import datasets.pascal_voc
 import numpy as np
+
+### my own dataset ###
+
+#------ real images for training and testing ------
+linemod_devkit_path = '/mnt/wb/dataset/LINEMOD4FRCNN'
+for split in ['train', 'test']:
+    name = '{}_{}'.format('linemod', split)
+    __sets[name] = (lambda split=split: datasets.linemod(split, linemod_devkit_path))
+#------ real images ------
+
+### my own dataset ###
 
 def _selective_search_IJCV_top_k(split, year, top_k):
     """Return an imdb that uses the top k proposals from the selective search

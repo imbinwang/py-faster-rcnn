@@ -8,6 +8,7 @@
 from .imdb import imdb
 from .pascal_voc import pascal_voc
 from . import factory
+from .linemod import linemod
 
 import os.path as osp
 ROOT_DIR = osp.join(osp.dirname(__file__), '..', '..')
