@@ -5,6 +5,12 @@
 # Written by Ross Girshick
 # --------------------------------------------------------
 
+#
+# this file was modified by Bin Wang(binwangsdu@gmail.com)
+# use Faster RCNN to detect and estimate pose for LINEMOD dataset
+# add pose regression at 2016/1/16
+#
+
 import numpy as np
 
 def bbox_transform(ex_rois, gt_rois):
@@ -28,6 +34,10 @@ def bbox_transform(ex_rois, gt_rois):
     return targets
 
 def bbox_transform_inv(boxes, deltas):
+    """Transform the set of class-agnostic boxes into class-specific boxes
+    by applying the predicted offsets(box_deltas)
+    """
+
     if boxes.shape[0] == 0:
         return np.zeros((0, deltas.shape[1]), dtype=deltas.dtype)
 

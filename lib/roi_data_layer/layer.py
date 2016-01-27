@@ -5,6 +5,12 @@
 # Written by Ross Girshick
 # --------------------------------------------------------
 
+#
+# this file was modified by Bin Wang(binwangsdu@gmail.com)
+# use Faster RCNN to detect and estimate pose for LINEMOD dataset
+# add pose regression at 2016/1/16
+#
+
 """The data layer used during training to train a Fast R-CNN network.
 
 RoIDataLayer implements a Caffe Python layer.
@@ -106,6 +112,11 @@ class RoIDataLayer(caffe.Layer):
             top[idx].reshape(1, 4)
             self._name_to_top_map['gt_boxes'] = idx
             idx += 1
+
+            if cfg.TRAIN.POSE_REG:
+                top[idx].reshape(1, 4)
+                self._name_to_top_map['gt_poses'] = idx
+                idx += 1
         else: # not using RPN
             # rois blob: holds R regions of interest, each is a 5-tuple
             # (n, x1, y1, x2, y2) specifying an image batch index n and a
@@ -128,13 +139,30 @@ class RoIDataLayer(caffe.Layer):
                 idx += 1
 
                 # bbox_inside_weights blob: At most 4 targets per roi are active;
-                # thisbinary vector sepcifies the subset of active targets
+                # this binary vector sepcifies the subset of active targets
                 top[idx].reshape(1, self._num_classes * 4)
                 self._name_to_top_map['bbox_inside_weights'] = idx
                 idx += 1
 
                 top[idx].reshape(1, self._num_classes * 4)
                 self._name_to_top_map['bbox_outside_weights'] = idx
+                idx += 1
+
+            if cfg.TRAIN.POSE_REG:
+                # pose_targets blob: R pose regression targets with 4
+                # targets per class
+                top[idx].reshape(1, self._num_classes * 4)
+                self._name_to_top_map['pose_targets'] = idx
+                idx += 1
+
+                # bbox_inside_weights blob: At most 4 targets per roi are active;
+                # thisbinary vector sepcifies the subset of active targets
+                top[idx].reshape(1, self._num_classes * 4)
+                self._name_to_top_map['pose_inside_weights'] = idx
+                idx += 1
+
+                top[idx].reshape(1, self._num_classes * 4)
+                self._name_to_top_map['pose_outside_weights'] = idx
                 idx += 1
 
         print 'RoiDataLayer: name_to_top:', self._name_to_top_map

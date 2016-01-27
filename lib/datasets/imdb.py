@@ -5,6 +5,12 @@
 # Written by Ross Girshick
 # --------------------------------------------------------
 
+#
+# this file was modified by Bin Wang(binwangsdu@gmail.com)
+# use Faster RCNN to detect and estimate pose for LINEMOD dataset
+# add pose data at 2016/1/16
+#
+
 import os
 import os.path as osp
 import PIL
@@ -12,6 +18,7 @@ from utils.cython_bbox import bbox_overlaps
 import numpy as np
 import scipy.sparse
 import datasets
+from fast_rcnn.config import cfg
 
 class imdb(object):
     """Image database."""
@@ -178,11 +185,21 @@ class imdb(object):
                 overlaps[I, gt_classes[argmaxes[I]]] = maxes[I]
 
             overlaps = scipy.sparse.csr_matrix(overlaps)
-            roidb.append({'boxes' : boxes,
-                          'gt_classes' : np.zeros((num_boxes,),
-                                                  dtype=np.int32),
-                          'gt_overlaps' : overlaps,
-                          'flipped' : False})
+            
+            if cfg.TRAIN.BBOX_REG and not cfg.TRAIN.POSE_REG:
+                roidb.append({'boxes' : boxes,
+                              'gt_classes' : np.zeros((num_boxes,),
+                                                      dtype=np.int32),
+                              'gt_overlaps' : overlaps,
+                              'flipped' : False})
+            if cfg.TRAIN.BBOX_REG and cfg.TRAIN.POSE_REG:
+                roidb.append({'boxes' : boxes,
+                              'gt_classes' : np.zeros((num_boxes,),
+                                                      dtype=np.int32),
+                              'gt_overlaps' : overlaps,
+                              'flipped' : False,
+                              'poses': np.zeros((num_boxes, 4),
+                                                      dtype=np.float32)})
         return roidb
 
     @staticmethod
@@ -194,6 +211,8 @@ class imdb(object):
                                             b[i]['gt_classes']))
             a[i]['gt_overlaps'] = scipy.sparse.vstack([a[i]['gt_overlaps'],
                                                        b[i]['gt_overlaps']])
+            if cfg.TRAIN.POSE_REG:
+                a[i]['poses'] = np.vstack((a[i]['poses'], b[i]['poses']))
         return a
 
     def competition_mode(self, on):

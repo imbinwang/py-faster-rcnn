@@ -5,6 +5,12 @@
 # Written by Ross Girshick
 # --------------------------------------------------------
 
+#
+# this file was modified by Bin Wang(binwangsdu@gmail.com)
+# use Faster RCNN to detect and estimate pose for LINEMOD dataset
+# add pose regression at 2016/1/16
+#
+
 """Fast R-CNN config system.
 
 This file specifies default config options for Fast R-CNN. You should not
@@ -35,7 +41,7 @@ __C.TRAIN = edict()
 
 # Scales to use during training (can list multiple scales)
 # Each scale is the pixel size of an image's shortest side
-__C.TRAIN.SCALES = (600,)
+__C.TRAIN.SCALES = (480,)
 
 # Max pixel size of the longest side of a scaled input image
 __C.TRAIN.MAX_SIZE = 1000
@@ -58,7 +64,7 @@ __C.TRAIN.BG_THRESH_HI = 0.5
 __C.TRAIN.BG_THRESH_LO = 0.1
 
 # Use horizontally-flipped images during training?
-__C.TRAIN.USE_FLIPPED = True
+__C.TRAIN.USE_FLIPPED = False
 
 # Train bounding-box regressors
 __C.TRAIN.BBOX_REG = True
@@ -66,6 +72,9 @@ __C.TRAIN.BBOX_REG = True
 # Overlap required between a ROI and ground-truth box in order for that ROI to
 # be used as a bounding-box regression training example
 __C.TRAIN.BBOX_THRESH = 0.5
+
+# Train pose regressors
+__C.TRAIN.POSE_REG = False
 
 # Iterations between snapshots
 __C.TRAIN.SNAPSHOT_ITERS = 10000
@@ -87,6 +96,16 @@ __C.TRAIN.BBOX_INSIDE_WEIGHTS = (1.0, 1.0, 1.0, 1.0)
 __C.TRAIN.BBOX_NORMALIZE_TARGETS_PRECOMPUTED = False
 __C.TRAIN.BBOX_NORMALIZE_MEANS = (0.0, 0.0, 0.0, 0.0)
 __C.TRAIN.BBOX_NORMALIZE_STDS = (0.1, 0.1, 0.2, 0.2)
+
+# Normalize the pose targets (subtract empirical mean, divide by empirical stddev)
+__C.TRAIN.POSE_NORMALIZE_TARGETS = True
+# Deprecated (inside weights)
+__C.TRAIN.POSE_INSIDE_WEIGHTS = (1.0, 1.0, 1.0, 1.0)
+# Normalize the pose targets using "precomputed" (or made up) means and stdevs
+# (POSE_NORMALIZE_TARGETS must also be True)
+__C.TRAIN.POSE_NORMALIZE_TARGETS_PRECOMPUTED = False
+__C.TRAIN.POSE_NORMALIZE_MEANS = (0.0, 0.0, 0.0, 0.0)
+__C.TRAIN.POSE_NORMALIZE_STDS = (0.1, 0.1, 0.2, 0.2)
 
 # Train using these proposals
 __C.TRAIN.PROPOSAL_METHOD = 'selective_search'
@@ -132,7 +151,7 @@ __C.TEST = edict()
 
 # Scales to use during testing (can list multiple scales)
 # Each scale is the pixel size of an image's shortest side
-__C.TEST.SCALES = (600,)
+__C.TEST.SCALES = (480,)
 
 # Max pixel size of the longest side of a scaled input image
 __C.TEST.MAX_SIZE = 1000
@@ -147,6 +166,9 @@ __C.TEST.SVM = False
 
 # Test using bounding-box regressors
 __C.TEST.BBOX_REG = True
+
+# Test using pose regressors
+__C.TEST.POSE_REG = False
 
 # Propose boxes
 __C.TEST.HAS_RPN = False

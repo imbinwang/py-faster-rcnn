@@ -5,6 +5,12 @@
 # Written by Ross Girshick
 # --------------------------------------------------------
 
+#
+# this file was modified by Bin Wang(binwangsdu@gmail.com)
+# use Faster RCNN to detect and estimate pose for LINEMOD dataset
+# add pose regression at 2016/1/16
+#
+
 """Compute minibatch blobs for training a Fast R-CNN network."""
 
 import numpy as np
@@ -39,6 +45,11 @@ def get_minibatch(roidb, num_classes):
         gt_boxes[:, 0:4] = roidb[0]['boxes'][gt_inds, :] * im_scales[0]
         gt_boxes[:, 4] = roidb[0]['gt_classes'][gt_inds]
         blobs['gt_boxes'] = gt_boxes
+        if cfg.TRAIN.POSE_REG:
+            gt_poses = np.empty((len(gt_inds), 5), dtype=np.float32)
+            gt_poses[:, 0:4] = roidb[0]['poses'][gt_inds, 0:4]
+            gt_poses[:, 4] = roidb[0]['gt_classes'][gt_inds]
+            blobs['gt_poses'] = gt_poses
         blobs['im_info'] = np.array(
             [[im_blob.shape[2], im_blob.shape[3], im_scales[0]]],
             dtype=np.float32)
@@ -48,11 +59,20 @@ def get_minibatch(roidb, num_classes):
         labels_blob = np.zeros((0), dtype=np.float32)
         bbox_targets_blob = np.zeros((0, 4 * num_classes), dtype=np.float32)
         bbox_inside_blob = np.zeros(bbox_targets_blob.shape, dtype=np.float32)
+        if cfg.TRAIN.POSE_REG:
+            pose_targets_blob = np.zeros((0, 4 * num_classes), dtype=np.float32)
+            pose_inside_blob = np.zeros(pose_targets_blob.shape, dtype=np.float32)
         # all_overlaps = []
         for im_i in xrange(num_images):
-            labels, overlaps, im_rois, bbox_targets, bbox_inside_weights \
-                = _sample_rois(roidb[im_i], fg_rois_per_image, rois_per_image,
-                               num_classes)
+            if cfg.TRAIN.BBOX_REG and not cfg.TRAIN.POSE_REG:
+                labels, overlaps, im_rois, bbox_targets, bbox_inside_weights \
+                    = _sample_rois(roidb[im_i], fg_rois_per_image, rois_per_image,
+                                   num_classes)
+
+            if cfg.TRAIN.BBOX_REG and cfg.TRAIN.POSE_REG:
+                labels, overlaps, im_rois, bbox_targets, bbox_inside_weights, pose_targets, pose_inside_weights \
+                    = _sample_rois(roidb[im_i], fg_rois_per_image, rois_per_image,
+                                   num_classes) 
 
             # Add to RoIs blob
             rois = _project_im_rois(im_rois, im_scales[im_i])
@@ -65,6 +85,9 @@ def get_minibatch(roidb, num_classes):
             bbox_targets_blob = np.vstack((bbox_targets_blob, bbox_targets))
             bbox_inside_blob = np.vstack((bbox_inside_blob, bbox_inside_weights))
             # all_overlaps = np.hstack((all_overlaps, overlaps))
+            if cfg.TRAIN.POSE_REG:
+                pose_targets_blob = np.vstack((pose_targets_blob, pose_targets))
+                pose_inside_blob = np.vstack((pose_inside_blob, pose_inside_weights))
 
         # For debug visualizations
         # _vis_minibatch(im_blob, rois_blob, labels_blob, all_overlaps)
@@ -78,6 +101,12 @@ def get_minibatch(roidb, num_classes):
             blobs['bbox_outside_weights'] = \
                 np.array(bbox_inside_blob > 0).astype(np.float32)
 
+        if cfg.TRAIN.POSE_REG:
+            blobs['pose_targets'] = pose_targets_blob
+            blobs['pose_inside_weights'] = pose_inside_blob
+            blobs['pose_outside_weights'] = \
+                np.array(pose_inside_blob > 0).astype(np.float32)
+
     return blobs
 
 def _sample_rois(roidb, fg_rois_per_image, rois_per_image, num_classes):
@@ -88,6 +117,8 @@ def _sample_rois(roidb, fg_rois_per_image, rois_per_image, num_classes):
     labels = roidb['max_classes']
     overlaps = roidb['max_overlaps']
     rois = roidb['boxes']
+    if cfg.TRAIN.POSE_REG:
+        poses = roidb['poses']
 
     # Select foreground RoIs as those with >= FG_THRESH overlap
     fg_inds = np.where(overlaps >= cfg.TRAIN.FG_THRESH)[0]
@@ -120,11 +151,20 @@ def _sample_rois(roidb, fg_rois_per_image, rois_per_image, num_classes):
     labels[fg_rois_per_this_image:] = 0
     overlaps = overlaps[keep_inds]
     rois = rois[keep_inds]
+    if cfg.TRAIN.POSE_REG:
+        poses = poses[keep_inds]
 
     bbox_targets, bbox_inside_weights = _get_bbox_regression_labels(
             roidb['bbox_targets'][keep_inds, :], num_classes)
+    if cfg.TRAIN.POSE_REG:
+        pose_targets, pose_inside_weights = _get_pose_regression_labels(
+            roidb['pose_targets'][keep_inds, :], num_classes)
 
-    return labels, overlaps, rois, bbox_targets, bbox_inside_weights
+    if cfg.TRAIN.BBOX_REG and not cfg.TRAIN.POSE_REG:
+        return labels, overlaps, rois, bbox_targets, bbox_inside_weights
+    if cfg.TRAIN.BBOX_REG and cfg.TRAIN.POSE_REG:
+        return labels, overlaps, rois, bbox_targets, bbox_inside_weights, \
+                   pose_targets, pose_inside_weights
 
 def _get_image_blob(roidb, scale_inds):
     """Builds an input blob from the images in the roidb at the specified
@@ -176,6 +216,30 @@ def _get_bbox_regression_labels(bbox_target_data, num_classes):
         bbox_targets[ind, start:end] = bbox_target_data[ind, 1:]
         bbox_inside_weights[ind, start:end] = cfg.TRAIN.BBOX_INSIDE_WEIGHTS
     return bbox_targets, bbox_inside_weights
+
+def _get_pose_regression_labels(pose_target_data, num_classes):
+    """Pose regression targets are stored in a compact form in the
+    roidb.
+
+    This function expands those targets into the 4-of-4*K representation used
+    by the network (i.e. only one class has non-zero targets). The loss weights
+    are similarly expanded.
+
+    Returns:
+        pose_target_data (ndarray): N x 4K blob of regression targets
+        pose_inside_weights (ndarray): N x 4K blob of loss weights
+    """
+    clss = pose_target_data[:, 0]
+    pose_targets = np.zeros((clss.size, 4 * num_classes), dtype=np.float32)
+    pose_inside_weights = np.zeros(pose_targets.shape, dtype=np.float32)
+    inds = np.where(clss > 0)[0]
+    for ind in inds:
+        cls = clss[ind]
+        start = 4 * cls
+        end = start + 4
+        pose_targets[ind, start:end] = pose_target_data[ind, 1:]
+        pose_inside_weights[ind, start:end] = cfg.TRAIN.POSE_INSIDE_WEIGHTS
+    return pose_targets, pose_inside_weights
 
 def _vis_minibatch(im_blob, rois_blob, labels_blob, overlaps):
     """Visualize a mini-batch for debugging."""
