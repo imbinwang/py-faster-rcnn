@@ -25,12 +25,18 @@ import pprint
 import shutil
 
 
-DATA_PATH = '/mnt/wb/dataset/LINEMOD_APE_PARAM/BG_PARAM_C'
+#DATA_PATH = '/mnt/wb/dataset/LINEMOD_3_PARAM/BG_PARAM_B'
+DATA_PATH = '/mnt/wb2/wb/LINEMOD_CAT_PARAM/BG_PARAM_B'
 
-CLASSES = ('__background__',
-           'ape', 'benchviseblue', 'bowl', 'cam', 'can', 
-           'cat', 'cup', 'driller', 'duck', 'eggbox', 
-           'glue', 'holepuncher', 'iron', 'lamp', 'phone')
+#CLASSES = ('__background__',
+#           'ape', 'benchviseblue', 'bowl', 'cam', 'can', 
+#           'cat', 'cup', 'driller', 'duck', 'eggbox', 
+#           'glue', 'holepuncher', 'iron', 'lamp', 'phone')
+
+#CLASSES = ('__background__',
+#           'ape', 'cat', 'duck')
+
+CLASSES = ('__background__', 'cat')
 
 NETS = {'detect_zf_200k': ('ZF/faster_rcnn_end2end',
                   'linemod_test.prototxt',
@@ -44,12 +50,30 @@ NETS = {'detect_zf_200k': ('ZF/faster_rcnn_end2end',
         'ape_pose_zf_1000k': ('ZF/faster_rcnn_end2end',
                   'linemod_ape_pose_test.prototxt',
                   'linemod_ape_pose_zf_iter_1000000.caffemodel'),
-        'apec2_pose_zf_200k': ('ZF/faster_rcnn_end2end',
+        'apec2_pose_zf_400k': ('ZF/faster_rcnn_end2end',
                   'linemod_apeb_pose_test.prototxt',
-                  'linemod_apec_pose_zf_2_iter_200000.caffemodel'),
-        'apec_pose_zf_200k': ('ZF/faster_rcnn_end2end',
+                  'linemod_apec_pose_zf_2_iter_400000.caffemodel'),
+        'apec_pose_zf_400k': ('ZF/faster_rcnn_end2end',
                   'linemod_apeb_pose_test.prototxt',
-                  'linemod_apec_pose_zf_iter_200000.caffemodel')}
+                  'linemod_apec_pose_zf_iter_400000.caffemodel'),
+        'apec3_pose_zf_200k': ('ZF/faster_rcnn_end2end',
+                  'linemod_apeb_pose_test.prototxt',
+                  'linemod_apec_pose_zf_3_iter_200000.caffemodel'),
+        'aped_pose_zf_20k': ('ZF/faster_rcnn_end2end',
+                  'linemod_apeb_pose_test.prototxt',
+                  'linemod_aped_pose_zf_iter_20000.caffemodel'),
+        'apeb2_pose_zf_1000k': ('ZF/faster_rcnn_end2end',
+                  'linemod_apeb_pose_test.prototxt',
+                  'linemod_apeb_pose_zf_2_iter_1000000.caffemodel'),
+        'large3_pose_zf_5000k': ('ZF/faster_rcnn_end2end',
+                  'linemod_3_pose_test.prototxt',
+                  'linemod_3_pose_zf_2_iter_5000000.caffemodel'),
+        'large3b_pose_zf_1000k': ('ZF/faster_rcnn_end2end',
+                  'linemod_3_pose_test.prototxt',
+                  'linemod_3b_pose_zf_2_iter_1000000.caffemodel'),
+        'catb2_pose_zf_400k': ('ZF/faster_rcnn_end2end',
+                  'linemod_apeb_pose_test.prototxt',
+                  'linemod_catb_pose_zf_2_iter_400000.caffemodel')}
 
 TO_BE_CLASS = CLASSES[1]
 DATASETS = {'linemod_{0}_test'.format(TO_BE_CLASS): 
@@ -126,7 +150,7 @@ def detect_pose(net, im, classes, pose_reg, img_path, txt_path):
 
     # Visualize detections for each class
     all_dets = [[] for _ in xrange(len(classes))]
-    CONF_THRESH = 0.8
+    CONF_THRESH = 0.1
     NMS_THRESH = 0.3
     i = 0
     for cls in classes:

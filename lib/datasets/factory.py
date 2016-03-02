@@ -9,6 +9,7 @@
 
 __sets = {}
 
+import datasets.linemod_3
 import datasets.linemod_ape
 import datasets.linemod_sub
 import datasets.linemod
@@ -50,6 +51,34 @@ linemod_largeapec_devkit_path = '/mnt/wb/dataset/LINEMOD_APE_PARAM/BG_PARAM_C'
 for split in ['train', 'test']:
     name = '{}_{}'.format('linemod_largeapec', split)
     __sets[name] = (lambda split=split: datasets.linemod_ape(split, linemod_largeapec_devkit_path))
+#------ synthesized image --------
+
+#------ synthesized images for training ------
+linemod_largeaped_devkit_path = '/mnt/wb/dataset/LINEMOD_APE_PARAM/BG_PARAM_D'
+for split in ['train', 'test']:
+    name = '{}_{}'.format('linemod_largeaped', split)
+    __sets[name] = (lambda split=split: datasets.linemod_ape(split, linemod_largeaped_devkit_path))
+#------ synthesized image --------
+
+#------ synthesized images for training ------
+linemod_large3_devkit_path = '/mnt/wb/dataset/LINEMOD_3_PARAM/BG_PARAM'
+for split in ['train', 'test']:
+    name = '{}_{}'.format('linemod_large3', split)
+    __sets[name] = (lambda split=split: datasets.linemod_3(split, linemod_large3_devkit_path))
+#------ synthesized image --------
+
+#------ synthesized images for training ------
+linemod_large3b_devkit_path = '/mnt/wb/dataset/LINEMOD_3_PARAM/BG_PARAM_B'
+for split in ['train', 'test']:
+    name = '{}_{}'.format('linemod_large3b', split)
+    __sets[name] = (lambda split=split: datasets.linemod_3(split, linemod_large3b_devkit_path))
+#------ synthesized image --------
+
+#------ synthesized images for training ------
+linemod_largecatb_devkit_path = '/mnt/wb2/wb/LINEMOD_CAT_PARAM/BG_PARAM_B'
+for split in ['train', 'test']:
+    name = '{}_{}'.format('linemod_largecatb', split)
+    __sets[name] = (lambda split=split: datasets.linemod_cat(split, linemod_largecatb_devkit_path))
 #------ synthesized image --------
 
 ### my own dataset ###

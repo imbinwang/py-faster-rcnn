@@ -71,11 +71,12 @@ def get_roidb(imdb_name, rpn_file=None):
 def get_solvers(net_name):
     # Faster R-CNN Alternating Optimization
     n = 'faster_rcnn_alt_opt'
+    d = 'linemod_largecatb_fixlayer1'
     # Solver for each training stage
-    solvers = [[net_name, n, 'stage1_rpn_solver60k80k.pt'],
-               [net_name, n, 'stage1_fast_rcnn_solver30k40k.pt'],
-               [net_name, n, 'stage2_rpn_solver60k80k.pt'],
-               [net_name, n, 'stage2_fast_rcnn_solver30k40k.pt']]
+    solvers = [[net_name, n, d, 'stage1_rpn_solver400k.pt'],
+               [net_name, n, d, 'stage1_fast_rcnn_solver200k.pt'],
+               [net_name, n, d, 'stage2_rpn_solver400k.pt'],
+               [net_name, n, d, 'stage2_fast_rcnn_solver200k.pt']]
     solvers = [os.path.join(cfg.ROOT_DIR, 'models', *s) for s in solvers]
     # Iterations for each training stage
     max_iters = [400000, 200000, 400000, 200000]
@@ -83,7 +84,7 @@ def get_solvers(net_name):
     # max_iters = [100, 100, 100, 100]
     # Test prototxt for the RPN
     rpn_test_prototxt = os.path.join(
-        cfg.ROOT_DIR, 'models', net_name, n, 'rpn_test.pt')
+        cfg.ROOT_DIR, 'models', net_name, n, d, 'rpn_test.pt')
     return solvers, max_iters, rpn_test_prototxt
 
 # ------------------------------------------------------------------------------
@@ -112,6 +113,7 @@ def train_rpn(queue=None, imdb_name=None, init_model=None, solver=None,
     # Not using any proposals, just ground-truth boxes
     cfg.TRAIN.HAS_RPN = True
     cfg.TRAIN.BBOX_REG = False  # applies only to Fast R-CNN bbox regression
+    cfg.TRAIN.POSE_REG = False  # applies only to Fast R-CNN bbox regression
     cfg.TRAIN.PROPOSAL_METHOD = 'gt'
     cfg.TRAIN.IMS_PER_BATCH = 1
     print 'Init model: {}'.format(init_model)
@@ -180,6 +182,8 @@ def train_fast_rcnn(queue=None, imdb_name=None, init_model=None, solver=None,
     cfg.TRAIN.HAS_RPN = False           # not generating prosals on-the-fly
     cfg.TRAIN.PROPOSAL_METHOD = 'rpn'   # use pre-computed RPN proposals instead
     cfg.TRAIN.IMS_PER_BATCH = 2
+    cfg.TRAIN.BBOX_REG = True
+    cfg.TRAIN.POSE_REG = True
     print 'Init model: {}'.format(init_model)
     print 'RPN proposals: {}'.format(rpn_file)
     print('Using config:')
