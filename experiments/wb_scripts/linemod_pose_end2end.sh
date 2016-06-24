@@ -28,7 +28,7 @@ echo Logging output to "$LOG"
 NET_INIT=data/imagenet_models/${NET}.v2.caffemodel
 
 time ./tools/train_net.py --gpu ${GPU_ID} \
-  --solver models/${NET}/faster_rcnn_end2end/linemod_pose_solver.prototxt \
+  --solver models/${NET}/faster_rcnn_end2end/linemod_pose_solver_2.prototxt \
   --weights ${NET_INIT} \
   --imdb ${DATASET_TRAIN} \
   --iters ${ITERS} \

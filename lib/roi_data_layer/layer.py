@@ -114,7 +114,7 @@ class RoIDataLayer(caffe.Layer):
             idx += 1
 
             if cfg.TRAIN.POSE_REG:
-                top[idx].reshape(1, 4)
+                top[idx].reshape(1, 7)
                 self._name_to_top_map['gt_poses'] = idx
                 idx += 1
         else: # not using RPN
@@ -149,19 +149,19 @@ class RoIDataLayer(caffe.Layer):
                 idx += 1
 
             if cfg.TRAIN.POSE_REG:
-                # pose_targets blob: R pose regression targets with 4
+                # pose_targets blob: R pose regression targets with 7
                 # targets per class
-                top[idx].reshape(1, self._num_classes * 4)
+                top[idx].reshape(1, self._num_classes * 7)
                 self._name_to_top_map['pose_targets'] = idx
                 idx += 1
 
-                # bbox_inside_weights blob: At most 4 targets per roi are active;
+                # bbox_inside_weights blob: At most 7 targets per roi are active;
                 # thisbinary vector sepcifies the subset of active targets
-                top[idx].reshape(1, self._num_classes * 4)
+                top[idx].reshape(1, self._num_classes * 7)
                 self._name_to_top_map['pose_inside_weights'] = idx
                 idx += 1
 
-                top[idx].reshape(1, self._num_classes * 4)
+                top[idx].reshape(1, self._num_classes * 7)
                 self._name_to_top_map['pose_outside_weights'] = idx
                 idx += 1
 

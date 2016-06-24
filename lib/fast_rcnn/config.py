@@ -100,12 +100,12 @@ __C.TRAIN.BBOX_NORMALIZE_STDS = (0.1, 0.1, 0.2, 0.2)
 # Normalize the pose targets (subtract empirical mean, divide by empirical stddev)
 __C.TRAIN.POSE_NORMALIZE_TARGETS = True
 # Deprecated (inside weights)
-__C.TRAIN.POSE_INSIDE_WEIGHTS = (1.0, 1.0, 1.0, 1.0)
+__C.TRAIN.POSE_INSIDE_WEIGHTS = (1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0)
 # Normalize the pose targets using "precomputed" (or made up) means and stdevs
 # (POSE_NORMALIZE_TARGETS must also be True)
 __C.TRAIN.POSE_NORMALIZE_TARGETS_PRECOMPUTED = False
-__C.TRAIN.POSE_NORMALIZE_MEANS = (0.0, 0.0, 0.0, 0.0)
-__C.TRAIN.POSE_NORMALIZE_STDS = (0.1, 0.1, 0.2, 0.2)
+__C.TRAIN.POSE_NORMALIZE_MEANS = (0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
+__C.TRAIN.POSE_NORMALIZE_STDS = (0.1, 0.1, 0.1, 0.1, 0.2, 0.2, 0.2)
 
 # Train using these proposals
 __C.TRAIN.PROPOSAL_METHOD = 'selective_search'

@@ -46,9 +46,9 @@ def get_minibatch(roidb, num_classes):
         gt_boxes[:, 4] = roidb[0]['gt_classes'][gt_inds]
         blobs['gt_boxes'] = gt_boxes
         if cfg.TRAIN.POSE_REG:
-            gt_poses = np.empty((len(gt_inds), 5), dtype=np.float32)
-            gt_poses[:, 0:4] = roidb[0]['poses'][gt_inds, 0:4]
-            gt_poses[:, 4] = roidb[0]['gt_classes'][gt_inds]
+            gt_poses = np.empty((len(gt_inds), 8), dtype=np.float32)
+            gt_poses[:, 0:7] = roidb[0]['poses'][gt_inds, 0:7]
+            gt_poses[:, 7] = roidb[0]['gt_classes'][gt_inds]
             blobs['gt_poses'] = gt_poses
         blobs['im_info'] = np.array(
             [[im_blob.shape[2], im_blob.shape[3], im_scales[0]]],
@@ -60,7 +60,7 @@ def get_minibatch(roidb, num_classes):
         bbox_targets_blob = np.zeros((0, 4 * num_classes), dtype=np.float32)
         bbox_inside_blob = np.zeros(bbox_targets_blob.shape, dtype=np.float32)
         if cfg.TRAIN.POSE_REG:
-            pose_targets_blob = np.zeros((0, 4 * num_classes), dtype=np.float32)
+            pose_targets_blob = np.zeros((0, 7 * num_classes), dtype=np.float32)
             pose_inside_blob = np.zeros(pose_targets_blob.shape, dtype=np.float32)
         # all_overlaps = []
         for im_i in xrange(num_images):
@@ -226,17 +226,17 @@ def _get_pose_regression_labels(pose_target_data, num_classes):
     are similarly expanded.
 
     Returns:
-        pose_target_data (ndarray): N x 4K blob of regression targets
-        pose_inside_weights (ndarray): N x 4K blob of loss weights
+        pose_target_data (ndarray): N x 7K blob of regression targets
+        pose_inside_weights (ndarray): N x 7K blob of loss weights
     """
     clss = pose_target_data[:, 0]
-    pose_targets = np.zeros((clss.size, 4 * num_classes), dtype=np.float32)
+    pose_targets = np.zeros((clss.size, 7 * num_classes), dtype=np.float32)
     pose_inside_weights = np.zeros(pose_targets.shape, dtype=np.float32)
     inds = np.where(clss > 0)[0]
     for ind in inds:
         cls = clss[ind]
-        start = 4 * cls
-        end = start + 4
+        start = 7 * cls
+        end = start + 7
         pose_targets[ind, start:end] = pose_target_data[ind, 1:]
         pose_inside_weights[ind, start:end] = cfg.TRAIN.POSE_INSIDE_WEIGHTS
     return pose_targets, pose_inside_weights

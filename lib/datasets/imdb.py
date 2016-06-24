@@ -198,7 +198,7 @@ class imdb(object):
                                                       dtype=np.int32),
                               'gt_overlaps' : overlaps,
                               'flipped' : False,
-                              'poses': np.zeros((num_boxes, 4),
+                              'poses': np.zeros((num_boxes, 7),
                                                       dtype=np.float32)})
         return roidb
 

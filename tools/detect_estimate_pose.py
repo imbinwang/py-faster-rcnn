@@ -25,18 +25,16 @@ import pprint
 import shutil
 
 
-#DATA_PATH = '/mnt/wb/dataset/LINEMOD_3_PARAM/BG_PARAM_B'
-DATA_PATH = '/mnt/wb2/wb/LINEMOD_CAT_PARAM/BG_PARAM_B'
-
+#DATA_PATH = '/mnt/wb/dataset/LINEMOD4FRCNN'
+#DATA_PATH = '/mnt/wb/dataset/LINEMOD_APE_PARAM/BG_PARAM_A'
 #CLASSES = ('__background__',
 #           'ape', 'benchviseblue', 'bowl', 'cam', 'can', 
 #           'cat', 'cup', 'driller', 'duck', 'eggbox', 
 #           'glue', 'holepuncher', 'iron', 'lamp', 'phone')
 
-#CLASSES = ('__background__',
-#           'ape', 'cat', 'duck')
-
-CLASSES = ('__background__', 'cat')
+DATA_PATH = '/mnt/sata/wwwb/LINEMOD_AD_PARAM/BG_PARAM'
+CLASSES = ('__background__',
+           'ape', 'duck')
 
 NETS = {'detect_zf_200k': ('ZF/faster_rcnn_end2end',
                   'linemod_test.prototxt',
@@ -73,11 +71,29 @@ NETS = {'detect_zf_200k': ('ZF/faster_rcnn_end2end',
                   'linemod_3b_pose_zf_2_iter_1000000.caffemodel'),
         'catb2_pose_zf_400k': ('ZF/faster_rcnn_end2end',
                   'linemod_apeb_pose_test.prototxt',
-                  'linemod_catb_pose_zf_2_iter_400000.caffemodel')}
+                  'linemod_catb_pose_zf_2_iter_400000.caffemodel'),
+        'fullpose_zf_400k': ('ZF/faster_rcnn_end2end',
+                  'linemod_pose_test.prototxt',
+                  'linemod_fullpose_zf_2_iter_400000.caffemodel'),
+        'aped_fullpose_zf_20k': ('ZF/faster_rcnn_end2end',
+                  'linemod_apeb_pose_test.prototxt',
+                  'linemod_aped_fullpose_zf_iter_20000.caffemodel'),
+        'apec_fullpose_zf_400k': ('ZF/faster_rcnn_end2end',
+                  'linemod_apeb_pose_test.prototxt',
+                  'linemod_apec_fullpose_zf_iter_400000.caffemodel'),
+        'apeb_fullpose_zf_2000k': ('ZF/faster_rcnn_end2end',
+                  'linemod_apeb_pose_test.prototxt',
+                  'linemod_apeb_fullpose_zf_iter_2000000.caffemodel'),
+        'apea_fullpose_zf_3000k': ('ZF/faster_rcnn_end2end',
+                  'linemod_apeb_pose_test.prototxt',
+                  'linemod_apea_fullpose_zf_iter_3000000.caffemodel'),
+        'ad_fullpose_zf_12000k': ('ZF/faster_rcnn_end2end',
+                  'linemod_ad_pose_test.prototxt',
+                  'linemod_ad_fullpose_zf_iter_12000000.caffemodel')}
 
-TO_BE_CLASS = CLASSES[1]
+TO_BE_CLASS = CLASSES[2]
 DATASETS = {'linemod_{0}_test'.format(TO_BE_CLASS): 
-                (DATA_PATH + '/data/ImageSets/test_{0}.txt'.format(TO_BE_CLASS),
+                (DATA_PATH + '/data/ImageSets/test_real_{0}.txt'.format(TO_BE_CLASS),
                  DATA_PATH + '/data/Images')}
 
 
@@ -109,14 +125,13 @@ def vis_detections(im, classes_name, all_dets, pose_reg, img_path=None, txt_path
             if txt_path is not None:
                 txt_file.write('{0} {1} {2[0]} {2[1]} {2[2]} {2[3]}'.format(classes_name[cls], score, bbox))
             if pose_reg:
-                pose = dets[i,5:9] 
+                pose = dets[i,5:12] 
                 ax.text(bbox[0], bbox[1] - 2,
-                        '{:s} {:.3f} {:.3f} {:.3f} {:.3f} {:.3f}'.format(classes_name[cls], score,
-                         pose[0],  pose[1],  pose[2],  pose[3]),
+                        '{:s} {:.3f}'.format(classes_name[cls], score),
                         bbox=dict(facecolor='blue', alpha=0.5),
                         fontsize=10, color='white')
                 if txt_path is not None:
-                    txt_file.write(' {0[0]} {0[1]} {0[2]} {0[3]}\n'.format(pose))
+                    txt_file.write(' {0[0]} {0[1]} {0[2]} {0[3]} {0[4]} {0[5]} {0[6]}\n'.format(pose))
             else:
                 ax.text(bbox[0], bbox[1] - 2,
                         '{:s} {:.3f}'.format(classes_name[cls], score),
@@ -150,7 +165,7 @@ def detect_pose(net, im, classes, pose_reg, img_path, txt_path):
 
     # Visualize detections for each class
     all_dets = [[] for _ in xrange(len(classes))]
-    CONF_THRESH = 0.1
+    CONF_THRESH = 0.5
     NMS_THRESH = 0.3
     i = 0
     for cls in classes:
@@ -162,7 +177,7 @@ def detect_pose(net, im, classes, pose_reg, img_path, txt_path):
         cls_scores = cls_scores[keep]  
 
         if pose_reg:
-            cls_poses = poses[:, 4*cls_ind:4*(cls_ind + 1)]
+            cls_poses = poses[:, 7*cls_ind:7*(cls_ind + 1)]
             cls_poses = cls_poses[keep, :]      
 
         all_dets[i] = np.hstack((cls_boxes, 

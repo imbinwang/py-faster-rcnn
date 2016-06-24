@@ -55,18 +55,18 @@ class ProposalTargetLayer(caffe.Layer):
 
         if cfg.TRAIN.POSE_REG:
             # pose_targets
-            top[5].reshape(1, self._num_classes * 4)
+            top[5].reshape(1, self._num_classes * 7)
             # pose_inside_weights
-            top[6].reshape(1, self._num_classes * 4)
+            top[6].reshape(1, self._num_classes * 7)
             # pose_outside_weights
-            top[7].reshape(1, self._num_classes * 4) 
+            top[7].reshape(1, self._num_classes * 7) 
 
     def forward(self, bottom, top):
         # Proposal ROIs (0, x1, y1, x2, y2) coming from RPN
         # (i.e., rpn.proposal_layer.ProposalLayer), or any other source
         all_rois = bottom[0].data
         # GT boxes (x1, y1, x2, y2, label)
-        # GT poses (p1, p2, p3, p4, label)
+        # GT poses (p1, p2, p3, p4, t1, t2, t3, label)
         # TODO(rbg): it's annoying that sometimes I have extra info before
         # and other times after box coordinates -- normalize to one format
         gt_boxes = bottom[1].data
@@ -242,24 +242,24 @@ def _sample_rois(all_rois, gt_boxes, fg_rois_per_image, rois_per_image, num_clas
 
 def _get_pose_regression_labels(pose_target_data, num_classes):
     """Pose regression targets (pose_target_data) are stored in a
-    compact form N x (class, p1, p2, p3, p4)
+    compact form N x (class, p1, p2, p3, p4, t1, t2, t3)
 
     This function expands those targets into the 4-of-4*K representation used
     by the network (i.e. only one class has non-zero targets).
 
     Returns:
-        pose_target (ndarray): N x 4K blob of regression targets
-        pose_inside_weights (ndarray): N x 4K blob of loss weights
+        pose_target (ndarray): N x 7K blob of regression targets
+        pose_inside_weights (ndarray): N x 7K blob of loss weights
     """
 
     clss = pose_target_data[:, 0]
-    pose_targets = np.zeros((clss.size, 4 * num_classes), dtype=np.float32)
+    pose_targets = np.zeros((clss.size, 7 * num_classes), dtype=np.float32)
     pose_inside_weights = np.zeros(pose_targets.shape, dtype=np.float32)
     inds = np.where(clss > 0)[0]
     for ind in inds:
         cls = clss[ind]
-        start = 4 * cls
-        end = start + 4
+        start = 7 * cls
+        end = start + 7
         pose_targets[ind, start:end] = pose_target_data[ind, 1:]
         pose_inside_weights[ind, start:end] = cfg.TRAIN.POSE_INSIDE_WEIGHTS
     return pose_targets, pose_inside_weights
@@ -269,7 +269,7 @@ def _compute_pose_targets(ex_rois, gt_poses, labels):
 
     assert ex_rois.shape[0] == gt_poses.shape[0]
     assert ex_rois.shape[1] == 4
-    assert gt_poses.shape[1] == 4
+    assert gt_poses.shape[1] == 7
 
     targets = gt_poses
     if cfg.TRAIN.POSE_NORMALIZE_TARGETS_PRECOMPUTED:
@@ -326,7 +326,7 @@ def _sample_pose_rois(all_rois, gt_boxes, gt_poses, fg_rois_per_image, rois_per_
         _get_bbox_regression_labels(bbox_target_data, num_classes)
 
     pose_target_data = _compute_pose_targets(
-        rois[:, 1:5], gt_poses[gt_assignment[keep_inds], :4], labels)
+        rois[:, 1:5], gt_poses[gt_assignment[keep_inds], :7], labels)
 
     pose_targets, pose_inside_weights = \
         _get_pose_regression_labels(pose_target_data, num_classes)

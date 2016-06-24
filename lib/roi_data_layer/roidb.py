@@ -162,8 +162,8 @@ def add_pose_regression_targets(roidb):
         # Compute values needed for means and stds
         # var(x) = E(x^2) - E(x)^2
         class_counts = np.zeros((num_classes, 1)) + cfg.EPS
-        sums = np.zeros((num_classes, 4))
-        squared_sums = np.zeros((num_classes, 4))
+        sums = np.zeros((num_classes, 7))
+        squared_sums = np.zeros((num_classes, 7))
         for im_i in xrange(num_images):
             targets = roidb[im_i]['pose_targets']
             for cls in xrange(1, num_classes):
@@ -223,7 +223,7 @@ def _compute_pose_targets(rois, poses, overlaps, labels):
     gt_poses = poses[gt_inds[gt_assignment], :]
     #ex_poses = rois[ex_inds, :]
 
-    targets = np.zeros((rois.shape[0], 5), dtype=np.float32)
+    targets = np.zeros((rois.shape[0], 8), dtype=np.float32)
     targets[ex_inds, 0] = labels[ex_inds]
     targets[ex_inds, 1:] = gt_poses
     return targets

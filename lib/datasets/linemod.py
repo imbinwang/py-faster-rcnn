@@ -254,7 +254,7 @@ class linemod(datasets.imdb):
                 pose_data = pf.readlines()
             assert num_objs==len(pose_data), \
                 'Inconsistent annotation bounding box data and pose data.'
-            poses = np.zeros((num_objs, 4), dtype=np.float32)
+            poses = np.zeros((num_objs, 7), dtype=np.float32)
             # Load object poses into a data frame.
             for ix, pose in enumerate(pose_data):
                 cls_pose = pose.strip().split(' ')
@@ -263,11 +263,14 @@ class linemod(datasets.imdb):
                 q2 = float(cls_pose[2])
                 q3 = float(cls_pose[3])
                 q4 = float(cls_pose[4])
+                t1 = float(cls_pose[5])*0.01
+                t2 = float(cls_pose[6])*0.01
+                t3 = float(cls_pose[7])*0.01
                 cls = self._class_to_ind[cls_name]
                 # just check the class id
                 assert cls==gt_classes[ix], \
                     'Inconsistent class name for annotated bounding box data ad pose data.'
-                poses[ix, :] = [q1, q2, q3, q4]
+                poses[ix, :] = [q1, q2, q3, q4, t1, t2, t3]
 
 
         if cfg.TRAIN.BBOX_REG and not cfg.TRAIN.POSE_REG:

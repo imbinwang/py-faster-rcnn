@@ -9,9 +9,7 @@
 
 __sets = {}
 
-import datasets.linemod_3
 import datasets.linemod_ape
-import datasets.linemod_sub
 import datasets.linemod
 import datasets.pascal_voc
 import numpy as np
@@ -26,17 +24,10 @@ for split in ['train', 'test']:
 #------ real images ------
 
 #------ synthesized images for training ------
-linemod_largesub_devkit_path = '/mnt/wb/dataset/LINEMOD_LARGE4FRCNN'
+linemod_largeapea_devkit_path = '/mnt/wb/dataset/LINEMOD_APE_PARAM/BG_PARAM_A'
 for split in ['train', 'test']:
-    name = '{}_{}'.format('linemod_largesub', split)
-    __sets[name] = (lambda split=split: datasets.linemod_sub(split, linemod_largesub_devkit_path))
-#------ synthesized images ------
-
-#------ synthesized images for training ------
-linemod_largeape_devkit_path = '/mnt/wb/dataset/LINEMOD_APE_PARAM/BG_PARAM'
-for split in ['train', 'test']:
-    name = '{}_{}'.format('linemod_largeape', split)
-    __sets[name] = (lambda split=split: datasets.linemod_ape(split, linemod_largeape_devkit_path))
+    name = '{}_{}'.format('linemod_largeapea', split)
+    __sets[name] = (lambda split=split: datasets.linemod_ape(split, linemod_largeapea_devkit_path))
 #------ synthesized images ------
 
 #------ synthesized images for training ------
@@ -61,24 +52,10 @@ for split in ['train', 'test']:
 #------ synthesized image --------
 
 #------ synthesized images for training ------
-linemod_large3_devkit_path = '/mnt/wb/dataset/LINEMOD_3_PARAM/BG_PARAM'
+linemod_largead_devkit_path = '/mnt/sata/wwwb/LINEMOD_AD_PARAM/BG_PARAM'
 for split in ['train', 'test']:
-    name = '{}_{}'.format('linemod_large3', split)
-    __sets[name] = (lambda split=split: datasets.linemod_3(split, linemod_large3_devkit_path))
-#------ synthesized image --------
-
-#------ synthesized images for training ------
-linemod_large3b_devkit_path = '/mnt/wb/dataset/LINEMOD_3_PARAM/BG_PARAM_B'
-for split in ['train', 'test']:
-    name = '{}_{}'.format('linemod_large3b', split)
-    __sets[name] = (lambda split=split: datasets.linemod_3(split, linemod_large3b_devkit_path))
-#------ synthesized image --------
-
-#------ synthesized images for training ------
-linemod_largecatb_devkit_path = '/mnt/wb2/wb/LINEMOD_CAT_PARAM/BG_PARAM_B'
-for split in ['train', 'test']:
-    name = '{}_{}'.format('linemod_largecatb', split)
-    __sets[name] = (lambda split=split: datasets.linemod_cat(split, linemod_largecatb_devkit_path))
+    name = '{}_{}'.format('linemod_largead', split)
+    __sets[name] = (lambda split=split: datasets.linemod_ad(split, linemod_largead_devkit_path))
 #------ synthesized image --------
 
 ### my own dataset ###

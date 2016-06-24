@@ -203,7 +203,7 @@ def im_detect_pose(net, im, boxes=None):
         scores (ndarray): R x K array of object class scores (K includes
             background as object category 0)
         boxes (ndarray): R x (4*K) array of predicted bounding boxes
-        poses (ndarray): R X (4*K) array of predicted poses
+        poses (ndarray): R X (7*K) array of predicted poses
     """
     blobs, im_scales = _get_blobs(im, boxes)
 
@@ -268,7 +268,7 @@ def im_detect_pose(net, im, boxes=None):
         pred_poses = blobs_out['pose_pred']
     else:
         # Simply repeat the poses, once for each class
-        pred_poses = np.zeros((scores.shape[0], 4*scores.shape[1]), dtype=np.float32)
+        pred_poses = np.zeros((scores.shape[0], 7*scores.shape[1]), dtype=np.float32)
 
     if cfg.DEDUP_BOXES > 0 and not cfg.TEST.HAS_RPN:
         # Map scores and predictions back to the original set of boxes

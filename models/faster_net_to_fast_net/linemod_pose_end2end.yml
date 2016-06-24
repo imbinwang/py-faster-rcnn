@@ -1,0 +1,5 @@
+TEST:
+  SCALES: !!python/tuple [480]
+  MAX_SIZE: 1000
+  BBOX_REG: True
+  POSE_REG: True
